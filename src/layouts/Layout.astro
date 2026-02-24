@@ -31,17 +31,18 @@ const base = import.meta.env.BASE_URL;
     <main class="flex-1">
       <slot />
     </main>
-    <footer class="bg-navy-800 text-white py-8">
+    <footer class="bg-navy-800 text-white py-8 relative">
+      <div class="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-accent-red to-transparent"></div>
       <div class="max-w-6xl mx-auto px-4 text-center">
         <p class="text-lg font-bold mb-2">#NotSoRandyFine</p>
         <p class="text-navy-200 text-sm mb-4">
           Civic engagement is a right. Accountability is a responsibility.
         </p>
         <div class="flex justify-center gap-6 text-sm text-navy-300">
-          <a href={`${base}`} class="hover:text-white transition-colors">Home</a>
-          <a href={`${base}evidence`} class="hover:text-white transition-colors">Evidence</a>
-          <a href={`${base}take-action`} class="hover:text-white transition-colors">Take Action</a>
-          <a href={`${base}accountability`} class="hover:text-white transition-colors">Accountability</a>
+          <a href={`${base}`} class="hover:text-white hover:-translate-y-0.5 transition-all duration-200">Home</a>
+          <a href={`${base}evidence`} class="hover:text-white hover:-translate-y-0.5 transition-all duration-200">Evidence</a>
+          <a href={`${base}take-action`} class="hover:text-white hover:-translate-y-0.5 transition-all duration-200">Take Action</a>
+          <a href={`${base}accountability`} class="hover:text-white hover:-translate-y-0.5 transition-all duration-200">Accountability</a>
         </div>
         <p class="text-navy-400 text-xs mt-6">
           All documented incidents are sourced from public records and news reporting.

@@ -9,6 +9,33 @@ const base = import.meta.env.BASE_URL;
 <Layout title="#NotSoRandyFine — Hold Hate Accountable">
   <Hero />
 
+  <!-- Who is Randy Fine? -->
+  <section class="py-16 bg-white border-b border-gray-100">
+    <div class="max-w-4xl mx-auto px-4">
+      <div class="flex flex-col md:flex-row items-center gap-8">
+        <div class="shrink-0">
+          <img
+            src={`${base}images/randy-fine.jpg`}
+            alt="Randy Fine, U.S. Representative from Florida"
+            class="w-48 h-48 rounded-2xl object-cover shadow-card-hover border-4 border-red-100"
+          />
+        </div>
+        <div>
+          <h2 class="section-heading">Who is Randy Fine?</h2>
+          <p class="text-gray-600 leading-relaxed mb-4">
+            Randy Fine is a U.S. Representative from Florida who has a documented pattern of hateful rhetoric
+            targeting Muslim, Palestinian, and other communities. His inflammatory statements have drawn
+            condemnation from colleagues on both sides of the aisle.
+          </p>
+          <p class="text-gray-600 leading-relaxed">
+            This site documents his record and empowers citizens to hold him — and every elected official — accountable
+            through direct civic engagement.
+          </p>
+        </div>
+      </div>
+    </div>
+  </section>
+
   <!-- What You Can Do -->
   <section class="py-16 bg-white">
     <div class="max-w-6xl mx-auto px-4">
@@ -16,25 +43,37 @@ const base = import.meta.env.BASE_URL;
       <p class="text-gray-600 text-center mb-12 max-w-2xl mx-auto">
         Democracy works when people speak up. Here's how you can make your voice heard.
       </p>
-      <div class="grid md:grid-cols-3 gap-8">
-        <div class="card p-8 text-center hover:shadow-lg transition-shadow">
-          <div class="text-4xl mb-4">📧</div>
+      <div class="grid md:grid-cols-3 gap-8 stagger-children">
+        <div class="card-interactive p-8 text-center group">
+          <div class="w-16 h-16 rounded-2xl bg-gradient-to-br from-accent-red to-red-500 text-white flex items-center justify-center mx-auto mb-4 group-hover:scale-110 transition-transform duration-300">
+            <svg class="w-8 h-8" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M21.75 6.75v10.5a2.25 2.25 0 01-2.25 2.25h-15a2.25 2.25 0 01-2.25-2.25V6.75m19.5 0A2.25 2.25 0 0019.5 4.5h-15a2.25 2.25 0 00-2.25 2.25m19.5 0v.243a2.25 2.25 0 01-1.07 1.916l-7.5 4.615a2.25 2.25 0 01-2.36 0L3.32 8.91a2.25 2.25 0 01-1.07-1.916V6.75" />
+            </svg>
+          </div>
           <h3 class="text-xl font-bold text-navy-800 mb-2">Email Your Reps</h3>
           <p class="text-gray-600 mb-4">
             Generate a personalized email to your representatives demanding accountability.
           </p>
           <a href={`${base}take-action`} class="btn-primary text-sm">Take Action</a>
         </div>
-        <div class="card p-8 text-center hover:shadow-lg transition-shadow">
-          <div class="text-4xl mb-4">📋</div>
+        <div class="card-interactive p-8 text-center group">
+          <div class="w-16 h-16 rounded-2xl bg-gradient-to-br from-navy-700 to-navy-900 text-white flex items-center justify-center mx-auto mb-4 group-hover:scale-110 transition-transform duration-300">
+            <svg class="w-8 h-8" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+            </svg>
+          </div>
           <h3 class="text-xl font-bold text-navy-800 mb-2">Review the Evidence</h3>
           <p class="text-gray-600 mb-4">
             See the documented timeline of hateful rhetoric and inflammatory actions.
           </p>
           <a href={`${base}evidence`} class="btn-outline text-sm">See Evidence</a>
         </div>
-        <div class="card p-8 text-center hover:shadow-lg transition-shadow">
-          <div class="text-4xl mb-4">📊</div>
+        <div class="card-interactive p-8 text-center group">
+          <div class="w-16 h-16 rounded-2xl bg-gradient-to-br from-navy-700 to-navy-900 text-white flex items-center justify-center mx-auto mb-4 group-hover:scale-110 transition-transform duration-300">
+            <svg class="w-8 h-8" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M3 13.125C3 12.504 3.504 12 4.125 12h2.25c.621 0 1.125.504 1.125 1.125v6.75C7.5 20.496 6.996 21 6.375 21h-2.25A1.125 1.125 0 013 19.875v-6.75zM9.75 8.625c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125v11.25c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 01-1.125-1.125V8.625zM16.5 4.125c0-.621.504-1.125 1.125-1.125h2.25C20.496 3 21 3.504 21 4.125v15.75c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 01-1.125-1.125V4.125z" />
+            </svg>
+          </div>
           <h3 class="text-xl font-bold text-navy-800 mb-2">Track Accountability</h3>
           <p class="text-gray-600 mb-4">
             See which leaders are speaking up, staying silent, or enabling hate.

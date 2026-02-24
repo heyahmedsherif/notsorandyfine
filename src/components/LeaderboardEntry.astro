@@ -36,7 +36,7 @@ const scoreBarWidth = Math.abs(score);
 const scoreBarColor = score >= 0 ? 'bg-green-500' : 'bg-red-500';
 ---
 
-<div class={`card p-5 ${config.bg} border ${config.border} leaderboard-entry`} data-tier={tier}>
+<div class={`card-interactive p-5 ${config.bg} border ${config.border} leaderboard-entry`} data-tier={tier}>
   <div class="flex items-start justify-between mb-3">
     <div>
       <div class="flex items-center gap-2 mb-1">
@@ -56,8 +56,8 @@ const scoreBarColor = score >= 0 ? 'bg-green-500' : 'bg-red-500';
   </div>
 
   <!-- Score bar -->
-  <div class="w-full h-1.5 bg-gray-200 rounded-full mb-3">
-    <div class={`h-full rounded-full ${scoreBarColor}`} style={`width: ${scoreBarWidth}%`}></div>
+  <div class="w-full h-2.5 bg-gray-200 rounded-full mb-3 overflow-hidden">
+    <div class={`h-full rounded-full ${score >= 0 ? 'bg-gradient-to-r from-green-400 to-green-600' : 'bg-gradient-to-r from-red-400 to-red-600'}`} style={`width: ${scoreBarWidth}%; transition: width 0.6s ease-out;`}></div>
   </div>
 
   <p class="text-sm text-gray-600 mb-2">{lastAction}</p>
@@ -71,17 +71,17 @@ const scoreBarColor = score >= 0 ? 'bg-green-500' : 'bg-red-500';
     </div>
     <div class="flex gap-2">
       {tier === 'champion' && (
-        <a href={`${base}take-action?action=thank&name=${encodeURIComponent(name)}`} class="text-xs font-medium px-3 py-1.5 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors">
+        <a href={`${base}take-action?action=thank&name=${encodeURIComponent(name)}`} class="text-xs font-medium px-3 py-1.5 bg-green-600 text-white rounded-lg hover:bg-green-700 hover:-translate-y-0.5 hover:shadow-md transition-all duration-200">
           Thank Them
         </a>
       )}
       {tier === 'silent' && (
-        <a href={`${base}take-action?action=urge&name=${encodeURIComponent(name)}`} class="text-xs font-medium px-3 py-1.5 bg-navy-800 text-white rounded-lg hover:bg-navy-700 transition-colors">
+        <a href={`${base}take-action?action=urge&name=${encodeURIComponent(name)}`} class="text-xs font-medium px-3 py-1.5 bg-navy-800 text-white rounded-lg hover:bg-navy-700 hover:-translate-y-0.5 hover:shadow-md transition-all duration-200">
           Urge Them
         </a>
       )}
       {tier === 'enabler' && (
-        <a href={`${base}take-action?action=callout&name=${encodeURIComponent(name)}`} class="text-xs font-medium px-3 py-1.5 bg-accent-red text-white rounded-lg hover:bg-accent-red-dark transition-colors">
+        <a href={`${base}take-action?action=callout&name=${encodeURIComponent(name)}`} class="text-xs font-medium px-3 py-1.5 bg-accent-red text-white rounded-lg hover:bg-accent-red-dark hover:-translate-y-0.5 hover:shadow-md transition-all duration-200">
           Call Them Out
         </a>
       )}

@@ -3,6 +3,7 @@ import Layout from '../layouts/Layout.astro';
 import EvidenceCard from '../components/EvidenceCard.astro';
 import evidence from '../data/evidence.json';
 
+const base = import.meta.env.BASE_URL;
 const sorted = [...evidence].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
 const categories = [...new Set(evidence.map(e => e.category))];
 
@@ -18,21 +19,30 @@ const categoryLabels: Record<string, string> = {
 <Layout title="Evidence Wall — #NotSoRandyFine">
   <section class="py-12 bg-white">
     <div class="max-w-4xl mx-auto px-4">
-      <h1 class="section-heading">Evidence Wall</h1>
-      <p class="text-gray-600 mb-8 max-w-2xl">
-        A documented timeline of Randy Fine's hateful rhetoric and inflammatory actions.
-        Every incident below is sourced from public records and news reporting.
-      </p>
+      <div class="flex items-start gap-5 mb-8">
+        <img
+          src={`${base}images/randy-fine.jpg`}
+          alt="Randy Fine"
+          class="hidden sm:block w-20 h-20 rounded-xl object-cover shadow-card border-2 border-red-100 shrink-0"
+        />
+        <div>
+          <h1 class="section-heading">Evidence Wall</h1>
+          <p class="text-gray-600 max-w-2xl">
+            A documented timeline of Randy Fine's hateful rhetoric and inflammatory actions.
+            Every incident below is sourced from public records and news reporting.
+          </p>
+        </div>
+      </div>
 
       <!-- Category filter -->
       <div class="flex flex-wrap gap-2 mb-8" id="category-filters">
-        <button class="filter-btn active px-4 py-2 rounded-full text-sm font-medium bg-navy-800 text-white transition-colors" data-category="all">
+        <button class="filter-btn active px-4 py-2 rounded-full text-sm font-medium bg-navy-800 text-white transition-all duration-200 hover:-translate-y-0.5" data-category="all">
           All ({evidence.length})
         </button>
         {categories.map(cat => {
           const count = evidence.filter(e => e.category === cat).length;
           return (
-            <button class="filter-btn px-4 py-2 rounded-full text-sm font-medium bg-gray-100 text-gray-700 hover:bg-gray-200 transition-colors" data-category={cat}>
+            <button class="filter-btn px-4 py-2 rounded-full text-sm font-medium bg-gray-100 text-gray-700 hover:bg-gray-200 transition-all duration-200 hover:-translate-y-0.5" data-category={cat}>
               {categoryLabels[cat] || cat} ({count})
             </button>
           );
@@ -40,10 +50,15 @@ const categoryLabels: Record<string, string> = {
       </div>
 
       <!-- Timeline -->
-      <div class="space-y-4" id="evidence-timeline">
-        {sorted.map(item => (
-          <EvidenceCard {...item} />
-        ))}
+      <div class="relative pl-6 before:absolute before:left-0 before:top-0 before:bottom-0 before:w-0.5 before:bg-gradient-to-b before:from-navy-800 before:via-accent-red before:to-navy-300 before:rounded-full" id="evidence-timeline">
+        <div class="space-y-4 stagger-children">
+          {sorted.map(item => (
+            <div class="relative">
+              <div class="absolute -left-[29px] top-6 w-3 h-3 rounded-full bg-navy-800 border-2 border-white shadow-sm"></div>
+              <EvidenceCard {...item} />
+            </div>
+          ))}
+        </div>
       </div>
 
       <div id="no-results" class="hidden text-center py-12 text-gray-500">
@@ -72,10 +87,22 @@ const categoryLabels: Record<string, string> = {
 
       let visibleCount = 0;
       cards.forEach(card => {
+        const wrapper = card.parentElement as HTMLElement;
         const cardCat = card.getAttribute('data-category');
         const show = category === 'all' || cardCat === category;
-        (card as HTMLElement).style.display = show ? '' : 'none';
-        if (show) visibleCount++;
+        if (show) {
+          wrapper.style.display = '';
+          (card as HTMLElement).style.opacity = '0';
+          (card as HTMLElement).style.transform = 'translateY(8px)';
+          requestAnimationFrame(() => {
+            (card as HTMLElement).style.transition = 'opacity 0.3s, transform 0.3s';
+            (card as HTMLElement).style.opacity = '1';
+            (card as HTMLElement).style.transform = 'translateY(0)';
+          });
+          visibleCount++;
+        } else {
+          wrapper.style.display = 'none';
+        }
       });
 
       if (noResults) {

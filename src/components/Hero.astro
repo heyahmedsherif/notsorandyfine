@@ -2,8 +2,12 @@
 const base = import.meta.env.BASE_URL;
 ---
 
-<section class="bg-gradient-to-br from-navy-800 via-navy-900 to-navy-800 text-white py-20 md:py-32">
-  <div class="max-w-4xl mx-auto px-4 text-center">
+<section class="relative overflow-hidden bg-gradient-to-br from-navy-800 via-navy-900 to-navy-800 text-white py-20 md:py-32">
+  <!-- Decorative background elements -->
+  <div class="absolute inset-0 opacity-[0.03]" style="background-image: radial-gradient(circle, white 1px, transparent 1px); background-size: 32px 32px;"></div>
+  <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-accent-red/5 rounded-full blur-3xl"></div>
+
+  <div class="relative z-10 max-w-4xl mx-auto px-4 text-center">
     <h1 class="text-4xl md:text-6xl font-black mb-6 leading-tight">
       Hate Has No Place<br />
       <span class="text-accent-red">In Public Office</span>
@@ -20,16 +24,33 @@ const base = import.meta.env.BASE_URL;
         See the Evidence
       </a>
     </div>
-    <div class="mt-12 grid grid-cols-3 gap-8 max-w-lg mx-auto">
-      <div>
+
+    <!-- Stats with icons -->
+    <div class="mt-14 grid grid-cols-3 gap-8 max-w-lg mx-auto">
+      <div class="text-center">
+        <div class="inline-flex items-center justify-center w-11 h-11 rounded-full bg-white/10 mb-3">
+          <svg class="w-5 h-5 text-accent-red" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+          </svg>
+        </div>
         <div class="text-3xl font-black" id="stat-incidents">12</div>
         <div class="text-navy-300 text-sm">Documented Incidents</div>
       </div>
-      <div>
+      <div class="text-center">
+        <div class="inline-flex items-center justify-center w-11 h-11 rounded-full bg-white/10 mb-3">
+          <svg class="w-5 h-5 text-accent-red" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M21.75 6.75v10.5a2.25 2.25 0 01-2.25 2.25h-15a2.25 2.25 0 01-2.25-2.25V6.75m19.5 0A2.25 2.25 0 0019.5 4.5h-15a2.25 2.25 0 00-2.25 2.25m19.5 0v.243a2.25 2.25 0 01-1.07 1.916l-7.5 4.615a2.25 2.25 0 01-2.36 0L3.32 8.91a2.25 2.25 0 01-1.07-1.916V6.75" />
+          </svg>
+        </div>
         <div class="text-3xl font-black" id="stat-emails">0</div>
         <div class="text-navy-300 text-sm">Emails Generated</div>
       </div>
-      <div>
+      <div class="text-center">
+        <div class="inline-flex items-center justify-center w-11 h-11 rounded-full bg-white/10 mb-3">
+          <svg class="w-5 h-5 text-accent-red" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 13.5l10.5-11.25L12 10.5h8.25L9.75 21.75 12 13.5H3.75z" />
+          </svg>
+        </div>
         <div class="text-3xl font-black" id="stat-actions">0</div>
         <div class="text-navy-300 text-sm">Actions Taken</div>
       </div>
@@ -40,8 +61,22 @@ const base = import.meta.env.BASE_URL;
 <script>
   import { getStats } from '../scripts/gamification.js';
   const stats = getStats();
+
+  function animateCount(el: HTMLElement, target: number) {
+    if (target === 0) { el.textContent = '0'; return; }
+    let current = 0;
+    const step = Math.max(1, Math.ceil(target / 30));
+    const interval = setInterval(() => {
+      current = Math.min(current + step, target);
+      el.textContent = current.toString();
+      if (current >= target) clearInterval(interval);
+    }, 40);
+  }
+
   const emailEl = document.getElementById('stat-emails');
   const actionEl = document.getElementById('stat-actions');
-  if (emailEl) emailEl.textContent = stats.emailsGenerated.toString();
-  if (actionEl) actionEl.textContent = stats.totalActions.toString();
+  const incidentEl = document.getElementById('stat-incidents');
+  if (emailEl) animateCount(emailEl, stats.emailsGenerated);
+  if (actionEl) animateCount(actionEl, stats.totalActions);
+  if (incidentEl) animateCount(incidentEl, 12);
 </script>
