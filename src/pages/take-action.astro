@@ -627,6 +627,7 @@ const base = import.meta.env.BASE_URL;
       const repName = result.rep.name;
       const email = result.rep.emails?.[0] || result.rep.email || '';
       const mailtoLink = email ? createMailtoLink(email, result.subject, result.body) : '';
+      const contactUrl = result.rep.contactForm || result.rep.urls?.[0] || '';
 
       return `
         <div class="card p-6">
@@ -653,6 +654,10 @@ const base = import.meta.env.BASE_URL;
               Copy to Clipboard
             </button>
             ${mailtoLink ? `<a href="${mailtoLink}" class="btn-secondary text-sm !py-2">Open in Email App</a>` : ''}
+            ${contactUrl ? `<a href="${contactUrl}" target="_blank" rel="noopener" class="inline-flex items-center gap-1.5 px-4 py-2 border-2 border-navy-800 text-navy-800 rounded-lg text-sm font-medium hover:bg-navy-800 hover:text-white hover:-translate-y-0.5 transition-all duration-200">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/></svg>
+              ${result.rep.contactForm ? 'Go to Contact Form' : 'Visit Website'}
+            </a>` : ''}
           </div>
           <p class="copy-feedback hidden text-sm text-green-600 mt-2 font-medium" data-index="${i}">Copied!</p>
         </div>
