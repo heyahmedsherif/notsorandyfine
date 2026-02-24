@@ -1,0 +1,13 @@
+name = "notsorandyfine-api"
+main = "index.js"
+compatibility_date = "2024-01-01"
+
+[vars]
+# Set these as secrets via `wrangler secret put`:
+# GOOGLE_CIVIC_API_KEY
+# CLAUDE_API_KEY
+
+# Optional: KV namespace for rate limiting
+# [[kv_namespaces]]
+# binding = "RATE_LIMIT_KV"
+# id = "<your-kv-namespace-id>"

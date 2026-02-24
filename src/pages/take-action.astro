@@ -1,0 +1,507 @@
+---
+import Layout from '../layouts/Layout.astro';
+import emailConfig from '../data/email-config.json';
+
+const base = import.meta.env.BASE_URL;
+---
+
+<Layout title="Take Action — #NotSoRandyFine">
+  <section class="py-12 bg-white">
+    <div class="max-w-4xl mx-auto px-4">
+      <h1 class="section-heading">Take Action</h1>
+      <p class="text-gray-600 mb-8 max-w-2xl">
+        Generate a personalized email to your representatives. Enter your zip code to find who represents you,
+        choose your tone, and send a message that matters.
+      </p>
+
+      <!-- Step 1: Your Info -->
+      <div class="card p-6 mb-6">
+        <h2 class="text-lg font-bold text-navy-800 mb-4 flex items-center gap-2">
+          <span class="w-7 h-7 bg-navy-800 text-white rounded-full flex items-center justify-center text-sm font-bold">1</span>
+          Your Information
+        </h2>
+        <div class="grid md:grid-cols-2 gap-4">
+          <div>
+            <label for="sender-name" class="block text-sm font-medium text-gray-700 mb-1">Your Name</label>
+            <input type="text" id="sender-name" placeholder="Your full name" class="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-navy-800 focus:border-navy-800 outline-none" />
+          </div>
+          <div>
+            <label for="zip-code" class="block text-sm font-medium text-gray-700 mb-1">Zip Code</label>
+            <div class="flex gap-2">
+              <input type="text" id="zip-code" placeholder="e.g., 33312" maxlength="5" pattern="[0-9]{5}" class="flex-1 px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-navy-800 focus:border-navy-800 outline-none" />
+              <button id="lookup-btn" class="btn-secondary text-sm !py-2.5">Find My Reps</button>
+            </div>
+          </div>
+        </div>
+        <div id="lookup-error" class="hidden mt-3 text-sm text-red-600 bg-red-50 p-3 rounded-lg"></div>
+        <div id="lookup-loading" class="hidden mt-3 text-sm text-gray-500 flex items-center gap-2">
+          <svg class="animate-spin w-4 h-4" viewBox="0 0 24 24" fill="none">
+            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
+          </svg>
+          Looking up your representatives...
+        </div>
+      </div>
+
+      <!-- Step 2: Your Representatives -->
+      <div id="reps-section" class="card p-6 mb-6 hidden">
+        <h2 class="text-lg font-bold text-navy-800 mb-4 flex items-center gap-2">
+          <span class="w-7 h-7 bg-navy-800 text-white rounded-full flex items-center justify-center text-sm font-bold">2</span>
+          Your Representatives
+        </h2>
+        <div id="reps-grid" class="space-y-3">
+          <!-- Populated by JS -->
+        </div>
+
+        <!-- Custom recipient -->
+        <div class="mt-4 pt-4 border-t border-gray-100">
+          <button id="add-custom-btn" class="text-sm text-navy-600 hover:text-navy-800 font-medium flex items-center gap-1">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+            </svg>
+            Add Custom Recipient
+          </button>
+          <div id="custom-recipient-form" class="hidden mt-3 flex gap-2">
+            <input type="text" id="custom-name" placeholder="Name" class="flex-1 px-3 py-2 border border-gray-300 rounded-lg text-sm outline-none focus:ring-2 focus:ring-navy-800" />
+            <input type="email" id="custom-email" placeholder="Email" class="flex-1 px-3 py-2 border border-gray-300 rounded-lg text-sm outline-none focus:ring-2 focus:ring-navy-800" />
+            <button id="add-custom-submit" class="btn-secondary text-sm !py-2">Add</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Step 3: Compose -->
+      <div id="compose-section" class="card p-6 mb-6 hidden">
+        <h2 class="text-lg font-bold text-navy-800 mb-4 flex items-center gap-2">
+          <span class="w-7 h-7 bg-navy-800 text-white rounded-full flex items-center justify-center text-sm font-bold">3</span>
+          Compose Your Email
+        </h2>
+
+        <!-- Action type -->
+        <div class="mb-6">
+          <label class="block text-sm font-medium text-gray-700 mb-2">What do you want to say?</label>
+          <div class="grid grid-cols-2 md:grid-cols-4 gap-2" id="action-selector">
+            {Object.entries(emailConfig.actions).map(([key, action]) => (
+              <button
+                class={`action-btn px-3 py-2.5 rounded-lg text-sm font-medium border-2 transition-colors ${key === 'condemn' ? 'border-navy-800 bg-navy-800 text-white' : 'border-gray-200 text-gray-700 hover:border-navy-800'}`}
+                data-action={key}
+              >
+                {action.label}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        <!-- Tone -->
+        <div class="mb-6">
+          <label class="block text-sm font-medium text-gray-700 mb-2">Choose your tone</label>
+          <div class="flex flex-wrap gap-2" id="tone-selector">
+            {emailConfig.tones.map(tone => (
+              <button
+                class={`tone-btn px-4 py-2 rounded-full text-sm font-medium border-2 transition-colors flex items-center gap-1.5 ${tone.id === 'formal' ? 'border-navy-800 bg-navy-800 text-white' : 'border-gray-200 text-gray-700 hover:border-navy-800'}`}
+                data-tone={tone.id}
+                title={tone.description}
+              >
+                <span>{tone.icon}</span> {tone.name}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        <!-- Selected evidence -->
+        <div id="evidence-banner" class="hidden mb-6 p-4 bg-amber-50 border border-amber-200 rounded-lg">
+          <div class="flex items-start justify-between">
+            <div>
+              <p class="text-sm font-medium text-amber-800">Selected evidence will be included:</p>
+              <p id="evidence-title" class="text-sm text-amber-700 mt-1"></p>
+            </div>
+            <button id="clear-evidence" class="text-amber-600 hover:text-amber-800">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
+          </div>
+        </div>
+
+        <button id="generate-btn" class="btn-primary w-full text-lg">
+          Generate Email
+        </button>
+
+        <div id="generate-loading" class="hidden mt-4 text-center text-gray-500 flex items-center justify-center gap-2">
+          <svg class="animate-spin w-5 h-5" viewBox="0 0 24 24" fill="none">
+            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
+          </svg>
+          Generating your personalized email...
+        </div>
+        <div id="generate-error" class="hidden mt-3 text-sm text-red-600 bg-red-50 p-3 rounded-lg"></div>
+      </div>
+
+      <!-- Step 4: Generated Emails -->
+      <div id="results-section" class="hidden space-y-4">
+        <h2 class="text-lg font-bold text-navy-800 flex items-center gap-2">
+          <span class="w-7 h-7 bg-green-600 text-white rounded-full flex items-center justify-center text-sm font-bold">4</span>
+          Your Emails Are Ready
+        </h2>
+        <div id="email-results" class="space-y-4">
+          <!-- Populated by JS -->
+        </div>
+
+        <!-- Share section -->
+        <div class="card p-6 mt-6 text-center">
+          <h3 class="font-bold text-navy-800 mb-2">Spread the Word</h3>
+          <p class="text-sm text-gray-600 mb-4">Help others take action too.</p>
+          <div class="flex justify-center gap-3">
+            <button id="share-twitter" class="px-4 py-2 bg-black text-white rounded-lg text-sm font-medium hover:bg-gray-800 transition-colors">
+              Share on X
+            </button>
+            <button id="share-facebook" class="px-4 py-2 bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-700 transition-colors">
+              Share on Facebook
+            </button>
+            <button id="share-copy" class="px-4 py-2 bg-gray-200 text-gray-800 rounded-lg text-sm font-medium hover:bg-gray-300 transition-colors">
+              Copy Link
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+</Layout>
+
+<script>
+  import { lookupReps, formatRepTitle } from '../scripts/rep-lookup.js';
+  import { generateEmail, generateFallbackEmail, copyToClipboard, createMailtoLink } from '../scripts/email-generator.js';
+  import { trackAction } from '../scripts/gamification.js';
+  import { shareOnTwitter, shareOnFacebook, copyLink } from '../scripts/share.js';
+
+  // State
+  let reps = [];
+  let selectedReps = new Set();
+  let customRecipients = [];
+  let selectedTone = 'formal';
+  let selectedAction = 'condemn';
+  let selectedEvidence = null;
+
+  // Check for evidence from Evidence Wall
+  const storedEvidence = sessionStorage.getItem('selectedEvidence');
+  if (storedEvidence) {
+    try {
+      selectedEvidence = JSON.parse(storedEvidence);
+      sessionStorage.removeItem('selectedEvidence');
+      const banner = document.getElementById('evidence-banner');
+      const titleEl = document.getElementById('evidence-title');
+      if (banner && titleEl) {
+        banner.classList.remove('hidden');
+        titleEl.textContent = selectedEvidence.title;
+      }
+    } catch {}
+  }
+
+  // Check for action from Accountability page
+  const params = new URLSearchParams(window.location.search);
+  const actionParam = params.get('action');
+  if (actionParam && ['condemn', 'thank', 'urge', 'callout'].includes(actionParam)) {
+    selectedAction = actionParam;
+    document.querySelectorAll('.action-btn').forEach(btn => {
+      const isSelected = btn.getAttribute('data-action') === actionParam;
+      btn.classList.toggle('border-navy-800', isSelected);
+      btn.classList.toggle('bg-navy-800', isSelected);
+      btn.classList.toggle('text-white', isSelected);
+      btn.classList.toggle('border-gray-200', !isSelected);
+      btn.classList.toggle('text-gray-700', !isSelected);
+    });
+  }
+
+  // Clear evidence
+  document.getElementById('clear-evidence')?.addEventListener('click', () => {
+    selectedEvidence = null;
+    document.getElementById('evidence-banner')?.classList.add('hidden');
+  });
+
+  // Rep lookup
+  document.getElementById('lookup-btn')?.addEventListener('click', async () => {
+    const zip = (document.getElementById('zip-code') as HTMLInputElement)?.value?.trim();
+    if (!zip || zip.length !== 5) {
+      showError('lookup-error', 'Please enter a valid 5-digit zip code.');
+      return;
+    }
+
+    hideError('lookup-error');
+    document.getElementById('lookup-loading')?.classList.remove('hidden');
+    document.getElementById('lookup-btn')?.setAttribute('disabled', 'true');
+
+    try {
+      const data = await lookupReps(zip);
+      reps = data.officials || [];
+
+      if (reps.length === 0) {
+        showError('lookup-error', 'No representatives found for this zip code.');
+        return;
+      }
+
+      selectedReps = new Set(reps.map((_, i) => i));
+      renderReps();
+      document.getElementById('reps-section')?.classList.remove('hidden');
+      document.getElementById('compose-section')?.classList.remove('hidden');
+    } catch (err) {
+      // Fallback: show compose without reps
+      showError('lookup-error', `Could not look up representatives: ${err.message}. You can still generate an email below.`);
+      document.getElementById('compose-section')?.classList.remove('hidden');
+    } finally {
+      document.getElementById('lookup-loading')?.classList.add('hidden');
+      document.getElementById('lookup-btn')?.removeAttribute('disabled');
+    }
+  });
+
+  function renderReps() {
+    const grid = document.getElementById('reps-grid');
+    if (!grid) return;
+
+    grid.innerHTML = reps.map((rep, i) => {
+      const checked = selectedReps.has(i);
+      const title = rep.office ? formatRepTitle(rep.office) : '';
+      const party = rep.party || '';
+      const partyColor = party === 'Democratic' ? 'text-blue-600' : party === 'Republican' ? 'text-red-600' : 'text-gray-600';
+
+      return `
+        <label class="flex items-center gap-4 p-4 rounded-lg border-2 cursor-pointer transition-colors ${checked ? 'border-navy-800 bg-navy-50' : 'border-gray-200 hover:border-gray-300'}" data-rep-index="${i}">
+          <input type="checkbox" class="rep-checkbox w-5 h-5 rounded border-gray-300 text-navy-800 focus:ring-navy-800" data-index="${i}" ${checked ? 'checked' : ''} />
+          <div class="flex-1">
+            <div class="font-semibold text-navy-800">${rep.name}</div>
+            <div class="text-sm text-gray-500">${title} ${party ? `· <span class="${partyColor}">${party}</span>` : ''}</div>
+          </div>
+          ${rep.emails ? `<span class="text-xs text-gray-400">${rep.emails[0]}</span>` : ''}
+        </label>
+      `;
+    }).join('');
+
+    grid.querySelectorAll('.rep-checkbox').forEach(cb => {
+      cb.addEventListener('change', (e) => {
+        const index = parseInt((e.target as HTMLInputElement).getAttribute('data-index') || '0');
+        if ((e.target as HTMLInputElement).checked) {
+          selectedReps.add(index);
+        } else {
+          selectedReps.delete(index);
+        }
+        renderReps();
+      });
+    });
+  }
+
+  // Custom recipients
+  document.getElementById('add-custom-btn')?.addEventListener('click', () => {
+    document.getElementById('custom-recipient-form')?.classList.toggle('hidden');
+  });
+
+  document.getElementById('add-custom-submit')?.addEventListener('click', () => {
+    const name = (document.getElementById('custom-name') as HTMLInputElement)?.value?.trim();
+    const email = (document.getElementById('custom-email') as HTMLInputElement)?.value?.trim();
+    if (name && email) {
+      customRecipients.push({ name, email });
+      (document.getElementById('custom-name') as HTMLInputElement).value = '';
+      (document.getElementById('custom-email') as HTMLInputElement).value = '';
+      document.getElementById('custom-recipient-form')?.classList.add('hidden');
+      renderReps();
+    }
+  });
+
+  // Tone selector
+  document.querySelectorAll('.tone-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      selectedTone = btn.getAttribute('data-tone') || 'formal';
+      document.querySelectorAll('.tone-btn').forEach(b => {
+        const isSelected = b === btn;
+        b.classList.toggle('border-navy-800', isSelected);
+        b.classList.toggle('bg-navy-800', isSelected);
+        b.classList.toggle('text-white', isSelected);
+        b.classList.toggle('border-gray-200', !isSelected);
+        b.classList.toggle('text-gray-700', !isSelected);
+      });
+    });
+  });
+
+  // Action selector
+  document.querySelectorAll('.action-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      selectedAction = btn.getAttribute('data-action') || 'condemn';
+      document.querySelectorAll('.action-btn').forEach(b => {
+        const isSelected = b === btn;
+        b.classList.toggle('border-navy-800', isSelected);
+        b.classList.toggle('bg-navy-800', isSelected);
+        b.classList.toggle('text-white', isSelected);
+        b.classList.toggle('border-gray-200', !isSelected);
+        b.classList.toggle('text-gray-700', !isSelected);
+      });
+    });
+  });
+
+  // Generate emails
+  document.getElementById('generate-btn')?.addEventListener('click', async () => {
+    const senderName = (document.getElementById('sender-name') as HTMLInputElement)?.value?.trim() || 'A Concerned Citizen';
+
+    const recipients = [
+      ...Array.from(selectedReps).map(i => reps[i]).filter(Boolean),
+      ...customRecipients,
+    ];
+
+    if (recipients.length === 0 && reps.length > 0) {
+      showError('generate-error', 'Please select at least one recipient.');
+      return;
+    }
+
+    hideError('generate-error');
+    document.getElementById('generate-loading')?.classList.remove('hidden');
+    document.getElementById('generate-btn')?.setAttribute('disabled', 'true');
+
+    const emailResults = [];
+
+    // If no reps found, generate a generic email
+    const targets = recipients.length > 0 ? recipients : [{ name: 'Representative', office: '', party: '' }];
+
+    for (const rep of targets) {
+      const repName = rep.name;
+      const repTitle = rep.office ? formatRepTitle(rep.office) : 'Representative';
+
+      try {
+        // Try AI generation first, fall back to templates
+        let result;
+        try {
+          result = await generateEmail({
+            senderName,
+            tone: selectedTone,
+            action: selectedAction,
+            repName,
+            repTitle,
+            selectedEvidence,
+          });
+        } catch {
+          result = generateFallbackEmail({
+            senderName,
+            tone: selectedTone,
+            action: selectedAction,
+            repName,
+            repTitle,
+            selectedEvidence,
+          });
+        }
+
+        emailResults.push({
+          rep,
+          ...result,
+        });
+
+        trackAction('email_generated');
+        trackAction('rep_contacted', { repName });
+      } catch (err) {
+        console.error('Error generating email for', repName, err);
+      }
+    }
+
+    document.getElementById('generate-loading')?.classList.add('hidden');
+    document.getElementById('generate-btn')?.removeAttribute('disabled');
+
+    if (emailResults.length > 0) {
+      renderEmailResults(emailResults);
+      document.getElementById('results-section')?.classList.remove('hidden');
+      document.getElementById('results-section')?.scrollIntoView({ behavior: 'smooth' });
+    } else {
+      showError('generate-error', 'Failed to generate emails. Please try again.');
+    }
+  });
+
+  function renderEmailResults(results) {
+    const container = document.getElementById('email-results');
+    if (!container) return;
+
+    container.innerHTML = results.map((result, i) => {
+      const repName = result.rep.name;
+      const email = result.rep.emails?.[0] || result.rep.email || '';
+      const mailtoLink = email ? createMailtoLink(email, result.subject, result.body) : '';
+
+      return `
+        <div class="card p-6">
+          <div class="flex items-center justify-between mb-4">
+            <div>
+              <h3 class="font-bold text-navy-800">To: ${repName}</h3>
+              ${email ? `<p class="text-sm text-gray-500">${email}</p>` : ''}
+            </div>
+            <span class="text-xs bg-green-100 text-green-700 px-2.5 py-1 rounded-full font-medium">Ready</span>
+          </div>
+
+          <div class="mb-3">
+            <label class="text-xs font-medium text-gray-500 uppercase">Subject</label>
+            <p class="font-medium text-navy-800">${result.subject}</p>
+          </div>
+
+          <div class="mb-4">
+            <label class="text-xs font-medium text-gray-500 uppercase">Body</label>
+            <div class="mt-1 p-4 bg-gray-50 rounded-lg text-sm text-gray-700 whitespace-pre-wrap max-h-64 overflow-y-auto" id="email-body-${i}">${escapeHtml(result.body)}</div>
+          </div>
+
+          <div class="flex flex-wrap gap-2">
+            <button class="copy-email-btn btn-primary text-sm !py-2" data-index="${i}">
+              Copy to Clipboard
+            </button>
+            ${mailtoLink ? `<a href="${mailtoLink}" class="btn-secondary text-sm !py-2">Open in Email App</a>` : ''}
+          </div>
+          <p class="copy-feedback hidden text-sm text-green-600 mt-2 font-medium" data-index="${i}">Copied!</p>
+        </div>
+      `;
+    }).join('');
+
+    container.querySelectorAll('.copy-email-btn').forEach(btn => {
+      btn.addEventListener('click', async () => {
+        const index = btn.getAttribute('data-index');
+        const bodyEl = document.getElementById(`email-body-${index}`);
+        if (bodyEl) {
+          const result = results[parseInt(index)];
+          const fullText = `Subject: ${result.subject}\n\n${result.body}`;
+          await copyToClipboard(fullText);
+          trackAction('email_copied');
+
+          const feedback = container.querySelector(`.copy-feedback[data-index="${index}"]`);
+          if (feedback) {
+            feedback.classList.remove('hidden');
+            setTimeout(() => feedback.classList.add('hidden'), 2000);
+          }
+        }
+      });
+    });
+  }
+
+  function escapeHtml(text) {
+    const div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
+  }
+
+  function showError(id, message) {
+    const el = document.getElementById(id);
+    if (el) {
+      el.textContent = message;
+      el.classList.remove('hidden');
+    }
+  }
+
+  function hideError(id) {
+    document.getElementById(id)?.classList.add('hidden');
+  }
+
+  // Share buttons
+  const siteUrl = window.location.origin + '/notsorandyfine/';
+  const shareText = 'I just emailed my representatives about Randy Fine\'s hateful rhetoric. You can too. #NotSoRandyFine';
+
+  document.getElementById('share-twitter')?.addEventListener('click', () => {
+    shareOnTwitter(shareText, siteUrl);
+    trackAction('shared');
+  });
+
+  document.getElementById('share-facebook')?.addEventListener('click', () => {
+    shareOnFacebook(siteUrl);
+    trackAction('shared');
+  });
+
+  document.getElementById('share-copy')?.addEventListener('click', () => {
+    copyLink(siteUrl);
+    trackAction('shared');
+  });
+</script>

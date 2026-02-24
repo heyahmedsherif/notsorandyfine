@@ -1,0 +1,86 @@
+---
+interface Props {
+  id: number;
+  date: string;
+  title: string;
+  summary: string;
+  quote: string | null;
+  source: string;
+  sourceUrl: string;
+  category: string;
+  severity: string;
+}
+
+const { id, date, title, summary, quote, source, sourceUrl, category, severity } = Astro.props;
+const base = import.meta.env.BASE_URL;
+
+const categoryColors: Record<string, string> = {
+  'anti-muslim': 'bg-red-100 text-red-700',
+  'anti-palestinian': 'bg-orange-100 text-orange-700',
+  'inflammatory-rhetoric': 'bg-yellow-100 text-yellow-700',
+  'abuse-of-power': 'bg-purple-100 text-purple-700',
+  'voting-irregularity': 'bg-blue-100 text-blue-700',
+};
+
+const categoryLabels: Record<string, string> = {
+  'anti-muslim': 'Anti-Muslim',
+  'anti-palestinian': 'Anti-Palestinian',
+  'inflammatory-rhetoric': 'Inflammatory Rhetoric',
+  'abuse-of-power': 'Abuse of Power',
+  'voting-irregularity': 'Voting Irregularity',
+};
+
+const severityDot: Record<string, string> = {
+  high: 'bg-red-500',
+  medium: 'bg-yellow-500',
+  low: 'bg-blue-500',
+};
+
+const formattedDate = new Date(date + 'T00:00:00').toLocaleDateString('en-US', {
+  year: 'numeric',
+  month: 'long',
+  day: 'numeric',
+});
+---
+
+<div class="card p-6 evidence-card" data-category={category} data-id={id}>
+  <div class="flex items-start justify-between mb-3">
+    <div class="flex items-center gap-2">
+      <span class={`w-2.5 h-2.5 rounded-full ${severityDot[severity] || severityDot.medium}`}></span>
+      <time class="text-sm text-gray-500 font-medium">{formattedDate}</time>
+    </div>
+    <span class={`text-xs font-medium px-2.5 py-1 rounded-full ${categoryColors[category] || 'bg-gray-100 text-gray-700'}`}>
+      {categoryLabels[category] || category}
+    </span>
+  </div>
+
+  <h3 class="text-lg font-bold text-navy-800 mb-2">{title}</h3>
+  <p class="text-gray-600 text-sm mb-3">{summary}</p>
+
+  {quote && (
+    <blockquote class="border-l-4 border-accent-red pl-4 py-2 mb-3 bg-red-50 rounded-r-lg">
+      <p class="text-sm italic text-gray-700">"{quote}"</p>
+    </blockquote>
+  )}
+
+  <div class="flex items-center justify-between mt-4 pt-4 border-t border-gray-100">
+    <a href={sourceUrl} target="_blank" rel="noopener noreferrer" class="text-sm text-navy-600 hover:text-navy-800 font-medium flex items-center gap-1">
+      <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+      </svg>
+      {source}
+    </a>
+    <button
+      class="use-in-email-btn text-sm font-medium text-accent-red hover:text-accent-red-dark flex items-center gap-1"
+      data-evidence-id={id}
+      data-evidence-title={title}
+      data-evidence-summary={summary}
+      data-evidence-quote={quote}
+    >
+      <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+      </svg>
+      Use in Email
+    </button>
+  </div>
+</div>

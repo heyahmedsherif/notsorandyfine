@@ -1,0 +1,55 @@
+---
+import Layout from '../layouts/Layout.astro';
+import Hero from '../components/Hero.astro';
+import BadgeDisplay from '../components/BadgeDisplay.astro';
+
+const base = import.meta.env.BASE_URL;
+---
+
+<Layout title="#NotSoRandyFine — Hold Hate Accountable">
+  <Hero />
+
+  <!-- What You Can Do -->
+  <section class="py-16 bg-white">
+    <div class="max-w-6xl mx-auto px-4">
+      <h2 class="section-heading text-center">What You Can Do</h2>
+      <p class="text-gray-600 text-center mb-12 max-w-2xl mx-auto">
+        Democracy works when people speak up. Here's how you can make your voice heard.
+      </p>
+      <div class="grid md:grid-cols-3 gap-8">
+        <div class="card p-8 text-center hover:shadow-lg transition-shadow">
+          <div class="text-4xl mb-4">📧</div>
+          <h3 class="text-xl font-bold text-navy-800 mb-2">Email Your Reps</h3>
+          <p class="text-gray-600 mb-4">
+            Generate a personalized email to your representatives demanding accountability.
+          </p>
+          <a href={`${base}take-action`} class="btn-primary text-sm">Take Action</a>
+        </div>
+        <div class="card p-8 text-center hover:shadow-lg transition-shadow">
+          <div class="text-4xl mb-4">📋</div>
+          <h3 class="text-xl font-bold text-navy-800 mb-2">Review the Evidence</h3>
+          <p class="text-gray-600 mb-4">
+            See the documented timeline of hateful rhetoric and inflammatory actions.
+          </p>
+          <a href={`${base}evidence`} class="btn-outline text-sm">See Evidence</a>
+        </div>
+        <div class="card p-8 text-center hover:shadow-lg transition-shadow">
+          <div class="text-4xl mb-4">📊</div>
+          <h3 class="text-xl font-bold text-navy-800 mb-2">Track Accountability</h3>
+          <p class="text-gray-600 mb-4">
+            See which leaders are speaking up, staying silent, or enabling hate.
+          </p>
+          <a href={`${base}accountability`} class="btn-outline text-sm">View Tracker</a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Your Impact -->
+  <section class="py-16 bg-gray-50">
+    <div class="max-w-4xl mx-auto px-4">
+      <h2 class="section-heading text-center">Your Impact</h2>
+      <BadgeDisplay />
+    </div>
+  </section>
+</Layout>

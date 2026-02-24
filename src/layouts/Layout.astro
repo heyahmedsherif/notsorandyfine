@@ -1,0 +1,56 @@
+---
+import Nav from '../components/Nav.astro';
+import '../styles/global.css';
+
+interface Props {
+  title: string;
+  description?: string;
+}
+
+const { title, description = 'Hold Randy Fine accountable for hateful rhetoric. Email your representatives and track who stands up.' } = Astro.props;
+const base = import.meta.env.BASE_URL;
+---
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content={description} />
+    <meta property="og:title" content={title} />
+    <meta property="og:description" content={description} />
+    <meta property="og:type" content="website" />
+    <link rel="icon" type="image/svg+xml" href={`${base}favicon.svg`} />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet" />
+    <title>{title}</title>
+  </head>
+  <body class="min-h-screen flex flex-col bg-gray-50">
+    <Nav />
+    <main class="flex-1">
+      <slot />
+    </main>
+    <footer class="bg-navy-800 text-white py-8">
+      <div class="max-w-6xl mx-auto px-4 text-center">
+        <p class="text-lg font-bold mb-2">#NotSoRandyFine</p>
+        <p class="text-navy-200 text-sm mb-4">
+          Civic engagement is a right. Accountability is a responsibility.
+        </p>
+        <div class="flex justify-center gap-6 text-sm text-navy-300">
+          <a href={`${base}`} class="hover:text-white transition-colors">Home</a>
+          <a href={`${base}evidence`} class="hover:text-white transition-colors">Evidence</a>
+          <a href={`${base}take-action`} class="hover:text-white transition-colors">Take Action</a>
+          <a href={`${base}accountability`} class="hover:text-white transition-colors">Accountability</a>
+        </div>
+        <p class="text-navy-400 text-xs mt-6">
+          All documented incidents are sourced from public records and news reporting.
+        </p>
+      </div>
+    </footer>
+    <script>
+      // Initialize gamification on every page
+      import('../scripts/gamification.js').then(m => m.init());
+    </script>
+  </body>
+</html>

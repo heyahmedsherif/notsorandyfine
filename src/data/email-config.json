@@ -1,0 +1,52 @@
+{
+  "tones": [
+    {
+      "id": "formal",
+      "name": "Formal",
+      "description": "Professional and measured tone suitable for official correspondence",
+      "icon": "📝"
+    },
+    {
+      "id": "passionate",
+      "name": "Passionate",
+      "description": "Emotionally charged and urgent, conveying strong conviction",
+      "icon": "🔥"
+    },
+    {
+      "id": "personal",
+      "name": "Personal",
+      "description": "Shares personal perspective and how this issue affects you directly",
+      "icon": "💬"
+    },
+    {
+      "id": "factual",
+      "name": "Factual",
+      "description": "Data-driven and evidence-focused, citing specific incidents",
+      "icon": "📊"
+    },
+    {
+      "id": "brief",
+      "name": "Brief",
+      "description": "Concise and to the point — for busy inboxes",
+      "icon": "⚡"
+    }
+  ],
+  "actions": {
+    "condemn": {
+      "label": "Demand Accountability",
+      "description": "Ask your representative to publicly condemn Randy Fine's rhetoric"
+    },
+    "thank": {
+      "label": "Thank for Speaking Out",
+      "description": "Thank a representative who has already condemned the rhetoric"
+    },
+    "urge": {
+      "label": "Urge to Speak Up",
+      "description": "Push a silent representative to take a public stance"
+    },
+    "callout": {
+      "label": "Call Out Enablers",
+      "description": "Challenge a representative who has defended or enabled the rhetoric"
+    }
+  }
+}

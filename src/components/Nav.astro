@@ -1,0 +1,80 @@
+---
+const base = import.meta.env.BASE_URL;
+const pathname = Astro.url.pathname;
+
+const links = [
+  { href: '', label: 'Home' },
+  { href: 'evidence', label: 'Evidence' },
+  { href: 'take-action', label: 'Take Action' },
+  { href: 'accountability', label: 'Accountability' },
+];
+---
+
+<nav class="bg-navy-800 text-white sticky top-0 z-50 shadow-lg">
+  <div class="max-w-6xl mx-auto px-4">
+    <div class="flex items-center justify-between h-16">
+      <a href={base} class="text-xl font-black tracking-tight">
+        <span class="text-accent-red">#</span>NotSoRandyFine
+      </a>
+
+      <!-- Desktop nav -->
+      <div class="hidden md:flex items-center gap-1">
+        {links.map(link => {
+          const href = `${base}${link.href}`;
+          const isActive = pathname === href || pathname === `${href}/`;
+          return (
+            <a
+              href={href}
+              class:list={[
+                'px-4 py-2 rounded-lg text-sm font-medium transition-colors',
+                isActive ? 'bg-navy-600 text-white' : 'text-navy-200 hover:text-white hover:bg-navy-700',
+              ]}
+            >
+              {link.label}
+            </a>
+          );
+        })}
+        <a href={`${base}take-action`} class="ml-2 btn-primary text-sm !py-2 !px-4">
+          Email Your Reps
+        </a>
+      </div>
+
+      <!-- Mobile menu button -->
+      <button id="mobile-menu-btn" class="md:hidden p-2 rounded-lg hover:bg-navy-700" aria-label="Open menu">
+        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
+        </svg>
+      </button>
+    </div>
+
+    <!-- Mobile nav -->
+    <div id="mobile-menu" class="hidden md:hidden pb-4">
+      {links.map(link => {
+        const href = `${base}${link.href}`;
+        const isActive = pathname === href || pathname === `${href}/`;
+        return (
+          <a
+            href={href}
+            class:list={[
+              'block px-4 py-2 rounded-lg text-sm font-medium transition-colors',
+              isActive ? 'bg-navy-600 text-white' : 'text-navy-200 hover:text-white hover:bg-navy-700',
+            ]}
+          >
+            {link.label}
+          </a>
+        );
+      })}
+      <a href={`${base}take-action`} class="block mt-2 btn-primary text-sm text-center">
+        Email Your Reps
+      </a>
+    </div>
+  </div>
+</nav>
+
+<script>
+  const btn = document.getElementById('mobile-menu-btn');
+  const menu = document.getElementById('mobile-menu');
+  btn?.addEventListener('click', () => {
+    menu?.classList.toggle('hidden');
+  });
+</script>
