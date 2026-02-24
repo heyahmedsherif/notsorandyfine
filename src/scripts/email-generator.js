@@ -1,4 +1,4 @@
-const WORKER_URL = 'https://notsorandyfine-api.workers.dev';
+const WORKER_URL = 'https://notsorandyfine-api.ahmed-sherif.workers.dev';
 
 export async function generateEmail({ senderName, tone, action, repName, repTitle, selectedEvidence }) {
   try {
