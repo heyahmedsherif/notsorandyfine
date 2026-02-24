@@ -45,11 +45,20 @@ const base = import.meta.env.BASE_URL;
 
       <!-- Step 2: Your Representatives -->
       <div id="reps-section" class="card p-6 mb-6 hidden">
-        <h2 class="text-lg font-bold text-navy-800 mb-4 flex items-center gap-2">
-          <span class="w-8 h-8 bg-gradient-to-br from-navy-700 to-navy-900 text-white rounded-full flex items-center justify-center text-sm font-bold shadow-sm">2</span>
-          Your Representatives
-        </h2>
-        <div id="reps-grid" class="space-y-3">
+        <div class="flex items-center justify-between mb-4">
+          <h2 class="text-lg font-bold text-navy-800 flex items-center gap-2">
+            <span class="w-8 h-8 bg-gradient-to-br from-navy-700 to-navy-900 text-white rounded-full flex items-center justify-center text-sm font-bold shadow-sm">2</span>
+            Your Representatives
+          </h2>
+          <div class="flex items-center gap-3">
+            <span id="selection-count" class="text-sm text-gray-500"></span>
+            <div class="flex gap-1">
+              <button id="select-all-btn" class="text-xs px-3 py-1.5 rounded-full bg-navy-800 text-white hover:bg-navy-900 transition-colors font-medium">Select All</button>
+              <button id="select-none-btn" class="text-xs px-3 py-1.5 rounded-full bg-gray-100 text-gray-600 hover:bg-gray-200 transition-colors font-medium">Select None</button>
+            </div>
+          </div>
+        </div>
+        <div id="reps-grid" class="space-y-4">
           <!-- Populated by JS -->
         </div>
 
@@ -61,9 +70,9 @@ const base = import.meta.env.BASE_URL;
             </svg>
             Add Custom Recipient
           </button>
-          <div id="custom-recipient-form" class="hidden mt-3 flex gap-2">
-            <input type="text" id="custom-name" placeholder="Name" class="flex-1 px-3 py-2 border border-gray-300 rounded-lg text-sm outline-none focus:ring-2 focus:ring-navy-800" />
-            <input type="email" id="custom-email" placeholder="Email" class="flex-1 px-3 py-2 border border-gray-300 rounded-lg text-sm outline-none focus:ring-2 focus:ring-navy-800" />
+          <div id="custom-recipient-form" class="hidden mt-3 flex gap-2 flex-wrap">
+            <input type="text" id="custom-name" placeholder="Name" class="flex-1 min-w-[120px] px-3 py-2 border border-gray-300 rounded-lg text-sm outline-none focus:ring-2 focus:ring-navy-800" />
+            <input type="email" id="custom-email" placeholder="Email" class="flex-1 min-w-[160px] px-3 py-2 border border-gray-300 rounded-lg text-sm outline-none focus:ring-2 focus:ring-navy-800" />
             <button id="add-custom-submit" class="btn-secondary text-sm !py-2">Add</button>
           </div>
         </div>
@@ -179,7 +188,10 @@ const base = import.meta.env.BASE_URL;
   // State
   let reps = [];
   let selectedReps = new Set();
+  let stateLegislators = [];
+  let selectedStateLegislators = new Set();
   let customRecipients = [];
+  let selectedCustom = new Set();
   let selectedTone = 'formal';
   let selectedAction = 'condemn';
   let selectedEvidence = null;
@@ -235,13 +247,23 @@ const base = import.meta.env.BASE_URL;
     try {
       const data = await lookupReps(zip);
       reps = data.officials || [];
+      stateLegislators = data.stateLegislators || [];
 
-      if (reps.length === 0) {
+      if (reps.length === 0 && stateLegislators.length === 0) {
         showError('lookup-error', 'No representatives found for this zip code.');
         return;
       }
 
-      selectedReps = new Set(reps.map((_, i) => i));
+      // Auto-select direct reps (senators + district rep), not other state reps
+      selectedReps = new Set();
+      reps.forEach((rep, i) => {
+        if (rep.directRep) selectedReps.add(i);
+      });
+      // Auto-select all state legislators
+      selectedStateLegislators = new Set(stateLegislators.map((_, i) => i));
+      // Auto-select all custom recipients
+      selectedCustom = new Set(customRecipients.map((_, i) => i));
+
       renderReps();
       document.getElementById('reps-section')?.classList.remove('hidden');
       document.getElementById('compose-section')?.classList.remove('hidden');
@@ -255,29 +277,116 @@ const base = import.meta.env.BASE_URL;
     }
   });
 
+  function renderRepCard(rep, index, set, groupClass, extraLabel = '') {
+    const checked = set.has(index);
+    const title = rep.office ? formatRepTitle(rep.office) : '';
+    const party = rep.party || '';
+    const partyColor = party === 'Democratic' ? 'text-blue-600' : party === 'Republican' ? 'text-red-600' : 'text-gray-600';
+    const borderAccent = rep.directRep !== false ? 'border-l-navy-800' : 'border-l-gray-300 border-dashed';
+    const photoHtml = rep.photoUrl
+      ? `<img src="${rep.photoUrl}" alt="" class="w-10 h-10 rounded-full object-cover border border-gray-200" onerror="this.style.display='none'" />`
+      : '';
+
+    return `
+      <label class="flex items-center gap-4 p-4 rounded-lg border-2 border-l-4 ${borderAccent} cursor-pointer transition-colors ${checked ? 'border-navy-800 bg-navy-50' : 'border-gray-200 hover:border-gray-300'}" data-group="${groupClass}" data-index="${index}">
+        <input type="checkbox" class="${groupClass}-checkbox w-5 h-5 rounded border-gray-300 text-navy-800 focus:ring-navy-800" data-group="${groupClass}" data-index="${index}" ${checked ? 'checked' : ''} />
+        ${photoHtml}
+        <div class="flex-1 min-w-0">
+          <div class="font-semibold text-navy-800">${rep.name}${extraLabel}</div>
+          <div class="text-sm text-gray-500 truncate">${title}${rep.district !== undefined ? ` (District ${rep.district})` : ''} ${party ? `· <span class="${partyColor}">${party}</span>` : ''}</div>
+        </div>
+        ${rep.emails && rep.emails.length > 0 ? `<span class="text-xs text-gray-400 hidden sm:inline">${rep.emails[0]}</span>` : (rep.contactForm ? `<span class="text-xs text-navy-600 hidden sm:inline">Contact Form</span>` : '')}
+      </label>
+    `;
+  }
+
   function renderReps() {
     const grid = document.getElementById('reps-grid');
     if (!grid) return;
 
-    grid.innerHTML = reps.map((rep, i) => {
-      const checked = selectedReps.has(i);
-      const title = rep.office ? formatRepTitle(rep.office) : '';
-      const party = rep.party || '';
-      const partyColor = party === 'Democratic' ? 'text-blue-600' : party === 'Republican' ? 'text-red-600' : 'text-gray-600';
+    let html = '';
 
-      return `
-        <label class="flex items-center gap-4 p-4 rounded-lg border-2 cursor-pointer transition-colors ${checked ? 'border-navy-800 bg-navy-50' : 'border-gray-200 hover:border-gray-300'}" data-rep-index="${i}">
-          <input type="checkbox" class="rep-checkbox w-5 h-5 rounded border-gray-300 text-navy-800 focus:ring-navy-800" data-index="${i}" ${checked ? 'checked' : ''} />
-          <div class="flex-1">
-            <div class="font-semibold text-navy-800">${rep.name}</div>
-            <div class="text-sm text-gray-500">${title} ${party ? `· <span class="${partyColor}">${party}</span>` : ''}</div>
-          </div>
-          ${rep.emails && rep.emails.length > 0 ? `<span class="text-xs text-gray-400">${rep.emails[0]}</span>` : (rep.contactForm ? `<span class="text-xs text-navy-600">Contact Form</span>` : '')}
-        </label>
-      `;
-    }).join('');
+    // Group federal reps
+    const directFederal = reps.filter(r => r.directRep);
+    const otherFederal = reps.filter(r => !r.directRep);
 
-    grid.querySelectorAll('.rep-checkbox').forEach(cb => {
+    // Section 1: Your Federal Representatives (direct reps)
+    if (directFederal.length > 0) {
+      html += `<div class="space-y-2">
+        <h3 class="text-sm font-semibold text-gray-700 uppercase tracking-wide flex items-center gap-2">
+          Your Federal Representatives
+          <span class="text-xs font-normal bg-navy-100 text-navy-700 px-2 py-0.5 rounded-full">${directFederal.length}</span>
+        </h3>`;
+      directFederal.forEach(rep => {
+        const origIndex = reps.indexOf(rep);
+        html += renderRepCard(rep, origIndex, selectedReps, 'fed', '');
+      });
+      html += '</div>';
+    }
+
+    // Section 2: Other State Federal Representatives (optional)
+    if (otherFederal.length > 0) {
+      html += `<div class="space-y-2">
+        <h3 class="text-sm font-semibold text-gray-500 uppercase tracking-wide flex items-center gap-2">
+          Other Federal Representatives
+          <span class="text-xs font-normal bg-gray-100 text-gray-500 px-2 py-0.5 rounded-full">${otherFederal.length}</span>
+          <span class="text-xs font-normal text-gray-400 italic">(optional)</span>
+        </h3>`;
+      otherFederal.forEach(rep => {
+        const origIndex = reps.indexOf(rep);
+        html += renderRepCard(rep, origIndex, selectedReps, 'fed', '');
+      });
+      html += '</div>';
+    }
+
+    // Section 3: State Legislators
+    if (stateLegislators.length > 0) {
+      html += `<div class="space-y-2">
+        <h3 class="text-sm font-semibold text-gray-700 uppercase tracking-wide flex items-center gap-2">
+          Your State Legislators
+          <span class="text-xs font-normal bg-green-100 text-green-700 px-2 py-0.5 rounded-full">${stateLegislators.length}</span>
+        </h3>`;
+      stateLegislators.forEach((rep, i) => {
+        html += renderRepCard(rep, i, selectedStateLegislators, 'state', '');
+      });
+      html += '</div>';
+    }
+
+    // Section 4: Custom Recipients
+    if (customRecipients.length > 0) {
+      html += `<div class="space-y-2">
+        <h3 class="text-sm font-semibold text-gray-700 uppercase tracking-wide flex items-center gap-2">
+          Custom Recipients
+          <span class="text-xs font-normal bg-amber-100 text-amber-700 px-2 py-0.5 rounded-full">${customRecipients.length}</span>
+        </h3>`;
+      customRecipients.forEach((rec, i) => {
+        const checked = selectedCustom.has(i);
+        html += `
+          <label class="flex items-center gap-4 p-4 rounded-lg border-2 border-l-4 border-l-amber-400 cursor-pointer transition-colors ${checked ? 'border-navy-800 bg-navy-50' : 'border-gray-200 hover:border-gray-300'}" data-group="custom" data-index="${i}">
+            <input type="checkbox" class="custom-checkbox w-5 h-5 rounded border-gray-300 text-navy-800 focus:ring-navy-800" data-group="custom" data-index="${i}" ${checked ? 'checked' : ''} />
+            <div class="flex-1 min-w-0">
+              <div class="font-semibold text-navy-800">${rec.name}</div>
+              <div class="text-sm text-gray-500 truncate">${rec.email}</div>
+            </div>
+            <button class="remove-custom-btn text-gray-400 hover:text-red-500 transition-colors p-1" data-custom-index="${i}" type="button">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+            </button>
+          </label>
+        `;
+      });
+      html += '</div>';
+    }
+
+    grid.innerHTML = html;
+
+    // Update selection count
+    const totalSelected = selectedReps.size + selectedStateLegislators.size + selectedCustom.size;
+    const totalAll = reps.length + stateLegislators.length + customRecipients.length;
+    const countEl = document.getElementById('selection-count');
+    if (countEl) countEl.textContent = `${totalSelected} of ${totalAll} selected`;
+
+    // Attach checkbox listeners for federal reps
+    grid.querySelectorAll('.fed-checkbox').forEach(cb => {
       cb.addEventListener('change', (e) => {
         const index = parseInt((e.target as HTMLInputElement).getAttribute('data-index') || '0');
         if ((e.target as HTMLInputElement).checked) {
@@ -288,7 +397,61 @@ const base = import.meta.env.BASE_URL;
         renderReps();
       });
     });
+
+    // Attach checkbox listeners for state legislators
+    grid.querySelectorAll('.state-checkbox').forEach(cb => {
+      cb.addEventListener('change', (e) => {
+        const index = parseInt((e.target as HTMLInputElement).getAttribute('data-index') || '0');
+        if ((e.target as HTMLInputElement).checked) {
+          selectedStateLegislators.add(index);
+        } else {
+          selectedStateLegislators.delete(index);
+        }
+        renderReps();
+      });
+    });
+
+    // Attach checkbox listeners for custom recipients
+    grid.querySelectorAll('.custom-checkbox').forEach(cb => {
+      cb.addEventListener('change', (e) => {
+        const index = parseInt((e.target as HTMLInputElement).getAttribute('data-index') || '0');
+        if ((e.target as HTMLInputElement).checked) {
+          selectedCustom.add(index);
+        } else {
+          selectedCustom.delete(index);
+        }
+        renderReps();
+      });
+    });
+
+    // Attach remove buttons for custom recipients
+    grid.querySelectorAll('.remove-custom-btn').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        const index = parseInt((btn as HTMLElement).getAttribute('data-custom-index') || '0');
+        customRecipients.splice(index, 1);
+        // Rebuild selectedCustom set (indices shifted)
+        selectedCustom = new Set(customRecipients.map((_, i) => i));
+        renderReps();
+      });
+    });
   }
+
+  // Select All / Select None
+  document.getElementById('select-all-btn')?.addEventListener('click', () => {
+    selectedReps = new Set(reps.map((_, i) => i));
+    selectedStateLegislators = new Set(stateLegislators.map((_, i) => i));
+    selectedCustom = new Set(customRecipients.map((_, i) => i));
+    renderReps();
+  });
+
+  document.getElementById('select-none-btn')?.addEventListener('click', () => {
+    selectedReps = new Set();
+    selectedStateLegislators = new Set();
+    selectedCustom = new Set();
+    renderReps();
+  });
 
   // Custom recipients
   document.getElementById('add-custom-btn')?.addEventListener('click', () => {
@@ -300,6 +463,7 @@ const base = import.meta.env.BASE_URL;
     const email = (document.getElementById('custom-email') as HTMLInputElement)?.value?.trim();
     if (name && email) {
       customRecipients.push({ name, email });
+      selectedCustom.add(customRecipients.length - 1);
       (document.getElementById('custom-name') as HTMLInputElement).value = '';
       (document.getElementById('custom-email') as HTMLInputElement).value = '';
       document.getElementById('custom-recipient-form')?.classList.add('hidden');
@@ -343,7 +507,8 @@ const base = import.meta.env.BASE_URL;
 
     const recipients = [
       ...Array.from(selectedReps).map(i => reps[i]).filter(Boolean),
-      ...customRecipients,
+      ...Array.from(selectedStateLegislators).map(i => stateLegislators[i]).filter(Boolean),
+      ...Array.from(selectedCustom).map(i => customRecipients[i]).filter(Boolean),
     ];
 
     if (recipients.length === 0 && reps.length > 0) {

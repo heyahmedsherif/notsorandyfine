@@ -63,6 +63,8 @@ async function handleRepLookup(url, env) {
   const geocodeUrl = `https://geocoding.geo.census.gov/geocoder/geographies/onelineaddress?address=${zip}&benchmark=Public_AR_Current&vintage=Current_Current&format=json`;
   let state = null;
   let district = null;
+  let stateUpperDistrict = null;
+  let stateLowerDistrict = null;
 
   try {
     const geoResponse = await fetch(geocodeUrl);
@@ -74,8 +76,12 @@ async function handleRepLookup(url, env) {
         const stateGeo = geographies?.['States']?.[0];
         const cdGeo = geographies?.['119th Congressional Districts']?.[0] ||
                       geographies?.['Congressional Districts']?.[0];
+        const slduGeo = geographies?.['State Legislative Districts - Upper']?.[0];
+        const sldlGeo = geographies?.['State Legislative Districts - Lower']?.[0];
         if (stateGeo) state = stateGeo.STUSAB;
         if (cdGeo) district = parseInt(cdGeo.CD119FP || cdGeo.CDFP || cdGeo.CD || '0');
+        if (slduGeo) stateUpperDistrict = slduGeo.SLDUST || slduGeo.NAME;
+        if (sldlGeo) stateLowerDistrict = sldlGeo.SLDLST || sldlGeo.NAME;
       }
     }
   } catch (e) {
@@ -107,27 +113,79 @@ async function handleRepLookup(url, env) {
         urls: leg.u ? [leg.u] : [],
         photoUrl: `https://bioguide.congress.gov/bioguide/photo/${leg.b[0]}/${leg.b}.jpg`,
         contactForm: leg.cf || null,
+        directRep: true,
       });
     }
 
     if (leg.t === 'rep') {
-      if (district === null || district === undefined || leg.d === district) {
-        officials.push({
-          name: leg.n,
-          office: 'U.S. Representative',
-          party: leg.p === 'Democrat' ? 'Democratic' : leg.p,
-          phones: leg.ph ? [leg.ph] : [],
-          emails: [],
-          urls: leg.u ? [leg.u] : [],
-          photoUrl: `https://bioguide.congress.gov/bioguide/photo/${leg.b[0]}/${leg.b}.jpg`,
-          contactForm: leg.cf || null,
-          district: leg.d,
-        });
-      }
+      const isDirectRep = district === null || district === undefined || leg.d === district;
+      officials.push({
+        name: leg.n,
+        office: 'U.S. Representative',
+        party: leg.p === 'Democrat' ? 'Democratic' : leg.p,
+        phones: leg.ph ? [leg.ph] : [],
+        emails: [],
+        urls: leg.u ? [leg.u] : [],
+        photoUrl: `https://bioguide.congress.gov/bioguide/photo/${leg.b[0]}/${leg.b}.jpg`,
+        contactForm: leg.cf || null,
+        district: leg.d,
+        directRep: isDirectRep,
+      });
     }
   }
 
-  return jsonResponse({ officials, state, district });
+  // Step 3: Look up state legislators via OpenStates API
+  let stateLegislators = [];
+  if (env.OPENSTATES_API_KEY && state) {
+    stateLegislators = await lookupStateLegislators(state, stateUpperDistrict, stateLowerDistrict, env.OPENSTATES_API_KEY);
+  }
+
+  return jsonResponse({ officials, stateLegislators, state, district });
+}
+
+async function lookupStateLegislators(state, upperDistrict, lowerDistrict, apiKey) {
+  const legislators = [];
+  const stateJurisdiction = `ocd-jurisdiction/country:us/state:${state.toLowerCase()}/government`;
+
+  const chambers = [];
+  if (upperDistrict) chambers.push({ classification: 'upper', district: upperDistrict });
+  if (lowerDistrict) chambers.push({ classification: 'lower', district: lowerDistrict });
+
+  for (const { classification, district } of chambers) {
+    try {
+      // Strip leading zeros from district number
+      const districtNum = String(parseInt(district) || district);
+      const url = `https://v3.openstates.org/people?jurisdiction=${encodeURIComponent(stateJurisdiction)}&org_classification=${classification}&district=${encodeURIComponent(districtNum)}&include=links`;
+      const response = await fetch(url, {
+        headers: { 'X-API-Key': apiKey },
+      });
+
+      if (!response.ok) continue;
+
+      const data = await response.json();
+      for (const person of (data.results || [])) {
+        const office = classification === 'upper' ? 'State Senator' : 'State Representative';
+        const email = person.email || (person.offices || []).find(o => o.email)?.email || null;
+        legislators.push({
+          name: person.name,
+          office,
+          party: person.party === 'Democrat' ? 'Democratic' : (person.party || ''),
+          emails: email ? [email] : [],
+          phones: [],
+          urls: person.links?.length ? [person.links[0].url] : [],
+          photoUrl: person.image || null,
+          contactForm: null,
+          district: districtNum,
+          level: 'state',
+          directRep: true,
+        });
+      }
+    } catch (e) {
+      console.error(`OpenStates ${classification} lookup error:`, e);
+    }
+  }
+
+  return legislators;
 }
 
 function zipToState(zip) {

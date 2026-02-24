@@ -21,6 +21,8 @@ export function formatRepTitle(office) {
     'U.S. Senator': 'U.S. Senator',
     'U.S. Representative': 'U.S. Representative',
     'Governor': 'Governor',
+    'State Senator': 'State Senator',
+    'State Representative': 'State Representative',
   };
   return titleMap[office] || office;
 }
