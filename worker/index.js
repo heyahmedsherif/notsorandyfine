@@ -115,6 +115,15 @@ async function handleRepLookup(url, env) {
     }
   }
 
+  // Build OpenStates contact form lookup for federal reps (keyed by last name)
+  const osContactForms = {};
+  for (const p of openStatesResults) {
+    if (p.jurisdiction?.classification === 'country' && p.email && p.email.startsWith('http')) {
+      const lastName = (p.family_name || p.name.split(' ').pop()).toLowerCase();
+      osContactForms[lastName] = p.email;
+    }
+  }
+
   // Step 3: Build federal officials from embedded data (richer: phones, contact forms)
   const officials = [];
 
@@ -122,6 +131,7 @@ async function handleRepLookup(url, env) {
     if (leg.s !== state) continue;
 
     if (leg.t === 'sen') {
+      const lastName = leg.n.split(' ').pop().toLowerCase();
       officials.push({
         name: leg.n,
         office: 'U.S. Senator',
@@ -130,13 +140,14 @@ async function handleRepLookup(url, env) {
         emails: [],
         urls: leg.u ? [leg.u] : [],
         photoUrl: `https://bioguide.congress.gov/bioguide/photo/${leg.b[0]}/${leg.b}.jpg`,
-        contactForm: leg.cf || null,
+        contactForm: leg.cf || osContactForms[lastName] || null,
         directRep: true,
       });
     }
 
     if (leg.t === 'rep') {
       const isDirectRep = district === null || district === undefined || leg.d === district;
+      const lastName = leg.n.split(' ').pop().toLowerCase();
       officials.push({
         name: leg.n,
         office: 'U.S. Representative',
@@ -145,7 +156,7 @@ async function handleRepLookup(url, env) {
         emails: [],
         urls: leg.u ? [leg.u] : [],
         photoUrl: `https://bioguide.congress.gov/bioguide/photo/${leg.b[0]}/${leg.b}.jpg`,
-        contactForm: leg.cf || null,
+        contactForm: leg.cf || osContactForms[lastName] || null,
         district: leg.d,
         directRep: isDirectRep,
       });
