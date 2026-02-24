@@ -123,8 +123,7 @@ const categoryLabels: Record<string, string> = {
 
       import('../scripts/gamification.js').then(m => m.trackAction('evidence_used'));
 
-      const base = document.querySelector('link[rel="icon"]')?.getAttribute('href')?.replace('favicon.svg', '') || '/notsorandyfine/';
-      window.location.href = `${base}take-action`;
+      window.location.href = '/take-action/';
     });
   });
 </script>
